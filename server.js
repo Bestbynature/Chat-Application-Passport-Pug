@@ -16,35 +16,48 @@ app.use("/public", express.static(process.cwd() + "/public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.route("/").get((req, res) => {
-  res.render("index", { title: "Hello", message: "Please log in" });
-});
+myDB(async (client) => {
+  const myDataBase = await client
+    .db("database")
+    .collection("user-collection-fcc-express");
 
-const session = require("express-session");
-const passport = require("passport");
+  app.route("/").get((req, res) => {
+    res.render("index", {
+      title: "Connected to Database",
+      message: "Please login",
+    });
+  });
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true,
-    cookie: { secure: false },
-  }),
-);
+  const session = require("express-session");
+  const passport = require("passport");
 
-app.use(passport.initialize());
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET,
+      resave: true,
+      saveUninitialized: true,
+      cookie: { secure: false },
+    }),
+  );
 
-app.use(passport.session());
+  app.use(passport.initialize());
 
-passport.serializeUser((user, done) => {
-  done(null, user._id);
-});
+  app.use(passport.session());
 
-passport.deserializeUser((id, done) => {
-  done(null, null);
-  // myDataBase.findOne({ _id: new ObjectID(id) }, (err, doc) => {
-  //   done(null, doc);
-  // });
+  passport.serializeUser((user, done) => {
+    done(null, user._id);
+  });
+
+  passport.deserializeUser((id, done) => {
+    // done(null, null);
+    myDataBase.findOne({ _id: new ObjectID(id) }, (err, doc) => {
+      done(null, doc);
+    });
+  });
+}).catch((e) => {
+  app.route("/").get((req, res) => {
+    res.render("index", { title: e, message: "Unable to connect to database" });
+  });
 });
 
 const PORT = process.env.PORT || 3000;
