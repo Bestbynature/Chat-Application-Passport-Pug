@@ -44,17 +44,6 @@ myDB(async (client) => {
     });
   });
 
-  app.route("/login").post(
-    passport.authenticate("local", { failureRedirect: "/" }),
-    (req, res) => {
-      res.redirect("/profile");
-    },
-  );
-
-  app.route("/profile").get((req, res) => {
-    res.render("profile", { username: req.user.username });
-  });
-
   app.use(
     session({
       secret: process.env.SESSION_SECRET,
