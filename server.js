@@ -26,7 +26,7 @@ myDB(async (client) => {
 
   auth(app, myDataBase);
   routes(app, myDataBase);
-  
+
   app.use((req, res, next) => {
     res.status(404).type("text").send("Not Found");
   });
@@ -43,8 +43,7 @@ myDB(async (client) => {
   app.use(passport.initialize());
 
   app.use(passport.session());
-
- }).catch((e) => {
+}).catch((e) => {
   app.route("/").get((req, res) => {
     res.render("index", { title: e, message: "Unable to connect to database" });
   });
