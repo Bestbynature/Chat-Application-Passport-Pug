@@ -36,7 +36,7 @@ module.exports = function (app, myDataBase) {
         callbackURL: "https://rn65rn-3000.csb.app/",
       },
       function (accessToken, refreshToken, profile, cb) {
-        console.log(profile);
+        // console.log(profile);
         myDataBase.findOneAndUpdate(
           { id: profile.id },
           {
