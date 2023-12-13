@@ -63,7 +63,6 @@ module.exports = function (app, myDataBase) {
             return cb(null, doc.value);
           },
         );
-        //Database logic here with callback containing your user object
       },
     ),
   );
