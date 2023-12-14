@@ -23,7 +23,6 @@ module.exports = function (app, myDataBase) {
   });
 
   passport.deserializeUser((id, done) => {
-    // done(null, null);
     myDataBase.findOne({ _id: new ObjectID(id) }, (err, doc) => {
       done(null, doc);
     });
