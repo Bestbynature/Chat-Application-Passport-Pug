@@ -75,6 +75,10 @@ myDB(async (client) => {
         connected: false
       });
     });
+
+    socket.on('chat message', (message) => {
+      io.emit('chat message', { name: socket.request.user.name, message });
+    });
   });
 
   app.use((req, res, next) => {
