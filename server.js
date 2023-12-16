@@ -10,6 +10,11 @@ const passport = require("passport");
 const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
+passportSocketIo = require("passport.socketio");
+const MongoStore = require("connect-mongo")(session);
+const URI = process.env.MONGO_URI;
+const store = new MongoStore({ url: URI });
+const cookieParser = require("cookie-parser");
 
 
 app.set("view engine", "pug");
@@ -30,22 +35,41 @@ myDB(async (client) => {
   auth(app, myDataBase);
   routes(app, myDataBase);
 
+  
+  function onAuthorizeSuccess(data, accept) {
+    console.log("successful connection to socket.io");
+    accept(null, true);
+  }
+
+  function onAuthorizeFail(data, message, error, accept) {
+    if (error) throw new Error(message);
+    console.log("failed connection to socket.io:", message);
+    accept(null, false);
+  }
+
+  io.use(
+    passportSocketIo.authorize({
+      cookieParser: cookieParser,
+      key: "express.sid",
+      secret: process.env.SESSION_SECRET,
+      store: store,
+      success: onAuthorizeSuccess,
+      fail: onAuthorizeFail,
+    }),
+  );
+
   let currentUsers = 0;
   io.on('connection', socket => {
     ++currentUsers;
     io.emit('user count', currentUsers);
-    console.log('A user has connected');
+    console.log('user ' + socket.request.user.username + ' connected');
+    // console.log('A user has connected');
     socket.on('disconnect', () => {
       --currentUsers;
       io.emit('user count', currentUsers);
       console.log('A user has disconnected');
     });
   });
-
-  // io.on('connection', socket => {
-  //   console.log('A user has connected');
-  // });
-
 
   app.use((req, res, next) => {
     res.status(404).type("text").send("Not Found");
@@ -56,6 +80,8 @@ myDB(async (client) => {
       secret: process.env.SESSION_SECRET,
       resave: true,
       saveUninitialized: true,
+      key: "express.sid",
+      store: store,
       cookie: { secure: false },
     }),
   );
