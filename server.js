@@ -30,9 +30,22 @@ myDB(async (client) => {
   auth(app, myDataBase);
   routes(app, myDataBase);
 
+  let currentUsers = 0;
   io.on('connection', socket => {
+    ++currentUsers;
+    io.emit('user count', currentUsers);
     console.log('A user has connected');
+    socket.on('disconnect', () => {
+      --currentUsers;
+      io.emit('user count', currentUsers);
+      console.log('A user has disconnected');
+    });
   });
+
+  // io.on('connection', socket => {
+  //   console.log('A user has connected');
+  // });
+
 
   app.use((req, res, next) => {
     res.status(404).type("text").send("Not Found");
